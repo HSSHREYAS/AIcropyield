@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropYieldAI System Architecture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            display: grid;
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .layer-box {
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        .frontend-layer { background-color: #ffe0b2; border: 2px solid #ff9800; }
+        .backend-layer { background-color: #bbdefb; border: 2px solid #2196f3; }
+        .ai-business-layer { background-color: #c8e6c9; border: 2px solid #4caf50; }
+        .external-integrations-layer { background-color: #e1bee7; border: 2px solid #9c27b0; }
+
+        .layer-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+        .component-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .component {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 0.9em;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            min-width: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1; /* Ensure components are above connectors */
+        }
+        .component-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .tech-stack {
+            font-size: 0.8em;
+            color: #777;
+        }
+        .user-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+            color: #3f51b5;
+        }
+        .arrow {
+            position: absolute;
+            z-index: 0; /* Arrows behind components */
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+            pointer-events: none; /* Make arrows not block clicks */
+        }
+        .arrow-line {
+            position: absolute;
+            border-top: 1px dashed #666;
+            width: 100%;
+            height: 0;
+            left: 0;
+            top: 50%;
+        }
+        .arrow-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 5px solid #666;
+            right: 0;
+            top: -5px;
+        }
+        .arrow-text {
+            position: absolute;
+            transform: translateY(-50%);
+            background-color: #f0f2f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        /* Specific positioning for clarity - this would ideally be done with an SVG or proper diagramming tool for complex layouts */
+        .frontend-layer .component:nth-child(2) { grid-area: user-icon; }
+        .frontend-layer .component:nth-child(3) { grid-area: landing-page; }
+        .frontend-layer .component:nth-child(4) { grid-area: pwa-app; }
+        .frontend-layer .component:nth-child(5) { grid-area: prediction-form; }
+        .frontend-layer .component:nth-child(6) { grid-area: reported-issues; }
+        .frontend-layer .component:nth-child(7) { grid-area: postgres-data; }
+
+        .backend-layer .component:nth-child(2) { grid-area: supabase-auth; }
+        .backend-layer .component:nth-child(3) { grid-area: api-endpoints; }
+        .backend-layer .component:nth-child(4) { grid-area: prediction-engine; }
+        .backend-layer .component:nth-child(5) { grid-area: openaend-map-api; }
+        .backend-layer .component:nth-child(6) { grid-area: translate-util; }
+        .backend-layer .component:nth-child(7) { grid-area: geolocation; }
+
+
+        .connections-frontend-backend,
+        .connections-backend-ai,
+        .connections-ai-external {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* Manual positioning for arrows to mimic the example diagram's flow */
+        .arrow-user-landing { top: 120px; left: 180px; width: 100px; }
+        .arrow-landing-enters-app { top: 180px; left: 350px; width: 100px; transform: rotate(0deg); }
+        .arrow-pwa-supabase-auth { top: 200px; left: 600px; width: 100px; }
+        .arrow-pwa-prediction-form { top: 320px; left: 350px; width: 100px; transform: rotate(0deg); }
+        .arrow-prediction-form-api-endpoints { top: 400px; left: 600px; width: 100px; }
+        .arrow-prediction-engine-ui-response { top: 480px; left: 850px; width: 100px; }
+        .arrow-reported-issues-postgres { top: 520px; left: 350px; width: 100px; }
+        .arrow-postgres-data-backend-postgres { top: 550px; left: 600px; width: 100px; }
+        .arrow-supabase-auth-openaend { top: 150px; left: 850px; width: 100px; }
+        .arrow-openaend-geolocation { top: 250px; left: 850px; width: 100px; }
+        .arrow-api-endpoints-prediction-engine { top: 400px; left: 850px; width: 100px; }
+        .arrow-geolocation-external { top: 600px; left: 850px; width: 100px; }
+        .arrow-prediction-engine-ai-logic { top: 650px; left: 600px; width: 100px; }
+        .arrow-ai-logic-external-weather { top: 750px; left: 850px; width: 100px; }
+
+
+        .vertical-arrow-line {
+            height: 100%;
+            width: 0;
+            border-left: 1px dashed #5d14da71;
+            position: absolute;
+            left: 50%;
+            top: 0;
+        }
+        .vertical-arrow-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #666;
+            bottom: 0;
+            left: -5px;
+        }
+
+        .label {
+            position: absolute;
+            font-size: 0.8em;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            z-index: 2;
+        }
+        .label.top { top: -15px; transform: translateX(-50%); }
+        .label.bottom { bottom: -15px; transform: translateX(-50%); }
+        .label.left { left: -50px; top: 50%; transform: translateY(-50%); }
+        .label.right { right: -50px; top: 50%; transform: translateY(-50%); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="layer-box frontend-layer">
+            <div class="layer-title">Frontend: React PWA</div>
+            <div class="component-grid">
+                <div class="component">
+                    <span class="user-icon">&#128100;</span>
+                    <div class="component-label">User: Farmer/Extension</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Landing Page (Auth Entry)</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">PWA App</div>
+                    <div class="tech-stack">React, Service Worker, IndexedDB</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Prediction Form</div>
+                    <div class="tech-stack">(Crop, Area, Soil, Date, Geo)</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Reported Issues/Enhancements</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">PostgreSQL Data</div>
+                    <div class="tech-stack">(users, farms, predictions)</div>
+                </div>
+            </div>
+            <div class="connections-frontend-backend">
+                <div class="arrow" style="top: 100px; left: 160px; width: 100px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Visits</div>
+                </div>
+                <div class="arrow" style="top: 170px; left: 380px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Enters App</div>
+                </div>
+                <div class="arrow" style="top: 310px; left: 380px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Calls API</div>
+                </div>
+                <div class="arrow" style="top: 450px; left: 380px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Reports</div>
+                </div>
+                <div class="arrow" style="top: 500px; left: 380px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Retrieves</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-box backend-layer">
+            <div class="layer-title">Backend: Supabase</div>
+            <div class="component-grid">
+                <div class="component">
+                    <div class="component-label">Supabase Auth</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">API Endpoints</div>
+                    <div class="tech-stack">POST/GET</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Prediction Engine</div>
+                    <div class="tech-stack">(JS, crop, weather, soil, yield, uncertainty)</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">OpenAEnD/Map API</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Translate Util</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Geolocation</div>
+                    <div class="tech-stack">(GPS)</div>
+                </div>
+            </div>
+            <div class="connections-backend-ai">
+                <div class="arrow" style="top: 150px; left: 580px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Auth Data</div>
+                </div>
+                <div class="arrow" style="top: 250px; left: 580px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Protected API</div>
+                </div>
+                <div class="arrow" style="top: 390px; left: 580px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Call Prediction</div>
+                </div>
+                <div class="arrow" style="top: 470px; left: 850px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">To UI Response</div>
+                </div>
+                <div class="arrow" style="top: 180px; left: 800px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Geobase</div>
+                </div>
+                 <div class="arrow" style="top: 280px; left: 800px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Translates</div>
+                </div>
+                <div class="arrow" style="top: 380px; left: 800px; width: 60px; transform: rotate(0deg);">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-head" style="left: calc(100% - 5px);"></div>
+                    <div class="arrow-text" style="left: 50%; top: -15px;">Geo Query</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-box ai-business-layer">
+            <div class="layer-title">AI/ML & Business Logic</div>
+            <div class="component-grid">
+                <div class="component">
+                    <div class="component-label">PostgreSQL DB</div>
+                    <div class="tech-stack">(Farm Data, Prediction History)</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Geolocation</div>
+                    <div class="tech-stack">(GPS)</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Completions</div>
+                    <div class="tech-stack">(Translation)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-box external-integrations-layer">
+            <div class="layer-title">External Integrations</div>
+            <div class="component-grid">
+                <div class="component">
+                    <div class="component-label">OpenWeatherMap API</div>
+                    <div class="tech-stack">(Forecast/History)</div>
+                </div>
+                <div class="component">
+                    <div class="component-label">Other External APIs</div>
+                    <div class="tech-stack">(e.g., Soil Data, Market Prices)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

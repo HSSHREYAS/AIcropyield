@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIcropyield Project Architecture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #333;
+        }
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007bff; /* Blue color for title */
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto auto auto auto; /* User, Frontend, API, Backend, AI, Data */
+            gap: 25px;
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        .section-label {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #444;
+        }
+        .block-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .block {
+            background-color: #e0f7fa;
+            border: 1px solid #b2ebf2;
+            border-radius: 8px;
+            padding: 15px 25px;
+            text-align: center;
+            font-size: 0.95em;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .block.api-endpoint {
+            background-color: #ffe0b2;
+            border-color: #ffcc80;
+            padding: 20px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .block.backend { background-color: #c8e6c9; border-color: #a5d6a7; }
+        .block.ai-engine { background-color: #e1bee7; border-color: #ce93d8; }
+        .block.data-storage { background-color: #d1c4e9; border-color: #b39ddb; }
+
+        .block .icon {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            color: #007bff;
+        }
+        .block .description {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            z-index: 1;
+        }
+        .arrow-line {
+            position: absolute;
+            border-left: 1px solid #777;
+            width: 0;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .arrow-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #777;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .arrow-label {
+            position: absolute;
+            background-color: #f8f8f8;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #555;
+            white-space: nowrap;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Specific arrow positioning */
+        .arrow-user-frontend { top: 120px; height: 30px; left: 50%; }
+        .arrow-frontend-api { top: 380px; height: 30px; left: 50%; }
+        .arrow-api-backend { top: 520px; height: 30px; left: 50%; }
+        .arrow-backend-ai { top: 660px; height: 30px; left: 50%; }
+        .arrow-ai-data-access { top: 790px; height: 30px; left: 60%; } /* Adjusted for visual separation */
+        .arrow-ai-model-loading { top: 790px; height: 30px; left: 40%; } /* Adjusted for visual separation */
+
+        /* Horizontal arrows */
+        .h-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            z-index: 1;
+        }
+        .h-arrow-line {
+            position: absolute;
+            border-top: 1px solid #777;
+            height: 0;
+            width: 100%;
+            top: 50%;
+        }
+        .h-arrow-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 6px solid #777;
+            right: 0;
+            top: -6px;
+        }
+        .h-arrow-label {
+            position: absolute;
+            background-color: #f8f8f8;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #555;
+            white-space: nowrap;
+            top: -15px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .h-arrow.user-camera { top: 100px; left: 240px; width: 100px; }
+        .h-arrow.frontend-api-http { top: 340px; left: 350px; width: 100px; }
+        .h-arrow.backend-ai-images { top: 620px; left: 350px; width: 100px; }
+
+        .tech-legend {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px 20px;
+            font-size: 0.9em;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            z-index: 5;
+        }
+        .tech-legend-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 1.1em;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Design</div>
+
+    <div class="container">
+        <div class="section">
+            <div class="section-label">User</div>
+            <div class="block-row">
+                <div class="block"><span class="icon">&#128241;</span>Mobile</div>
+                <div class="block"><span class="icon">&#128187;</span>Desktop</div>
+                <div class="block"><span class="icon">&#128187;</span>Tablet</div> </div>
+        </div>
+
+        <div class="arrow arrow-user-frontend">
+            <div class="arrow-line"></div>
+            <div class="arrow-head"></div>
+            <div class="arrow-label" style="top: 15px;">Camera/Voice</div>
+        </div>
+
+        <div class="section">
+            <div class="section-label">Frontend: React + TypeScript</div>
+            <div class="block-row">
+                <div class="block"><span class="icon">&#128247;</span>Camera</div>
+                <div class="block"><span class="icon">&#127908;</span>Voice</div>
+                <div class="block"><span class="icon">&#128421;&#xFE0F;</span>Interface</div>
+                <div class="block"><span class="icon">&#128450;&#xFE0F;</span>Storage</div>
+            </div>
+        </div>
+
+        <div class="arrow arrow-frontend-api">
+            <div class="arrow-line"></div>
+            <div class="arrow-head"></div>
+            <div class="arrow-label" style="top: 15px;">HTTP requests</div>
+        </div>
+
+        <div class="section">
+            <div class="block api-endpoint">API ENDPOINTS</div>
+        </div>
+
+        <div class="arrow arrow-api-backend">
+            <div class="arrow-line"></div>
+            <div class="arrow-head"></div>
+            <div class="arrow-label" style="top: 15px;"></div> </div>
+
+        <div class="section">
+            <div class="section-label">Backend: Node.js Express</div>
+            <div class="block-row">
+                <div class="block backend">Express Server</div>
+                <div class="block backend">Data Processing</div>
+                <div class="block backend">Prediction DB</div>
+                <div class="block backend">Error Handler</div>
+            </div>
+        </div>
+
+        <div class="arrow arrow-backend-ai">
+            <div class="arrow-line"></div>
+            <div class="arrow-head"></div>
+            <div class="arrow-label" style="top: 15px;">Images</div>
+        </div>
+
+        <div class="section">
+            <div class="section-label">AI Engine</div>
+            <div class="block ai-engine">
+                <div class="component-label">ML Model</div>
+                <div class="description">Realtime Interface</div>
+            </div>
+        </div>
+
+        <div class="arrow arrow-ai-data-access" style="left: 40%;">
+            <div class="arrow-line"></div>
+            <div class="arrow-head"></div>
+            <div class="arrow-label" style="top: 15px;">Data Access</div>
+        </div>
+        <div class="arrow arrow-ai-data-access" style="left: 60%;">
+            <div class="arrow-line"></div>
+            <div class="arrow-head"></div>
+            <div class="arrow-label" style="top: 15px;">Model Loading</div>
+        </div>
+
+        <div class="section">
+            <div class="block-row">
+                <div class="block data-storage">Crops.json</div>
+                <div class="block data-storage">Model.pt</div>
+                <div class="block data-storage">Configuration</div>
+                <div class="block data-storage">Runtime Data</div>
+                <div class="block data-storage">User Data</div>
+            </div>
+        </div>
+
+        <div class="tech-legend">
+            <div class="tech-legend-title">Tech Stack:</div>
+            <div><strong>Frontend:</strong> React, TypeScript</div>
+            <div><strong>Backend:</strong> Node.js, Express</div>
+            <div><strong>AI:</strong> TensorFlow, ML</div>
+        </div>
+    </div>
+
+    <div class="footer">Architecture of our project</div>
+</body>
+</html>
